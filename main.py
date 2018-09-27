@@ -1,5 +1,6 @@
 from heapq import *
 from collections import defaultdict
+from itertools import combinations
 import ltp
 import numpy as np
 
@@ -54,13 +55,21 @@ with open(f'{DATA_DIR}/sky_dragon_abstract_simplified.txt') as f:
     wordLists = list(map(lambda x: x.split(' '), contents))
     dependencyLists = list(map(S.parse, wordLists))
 
-dependencyLists = [dependencyLists[18]]
-for dependencies in dependencyLists:
+for words, dependencies in zip(wordLists, dependencyLists):
     length = len(dependencies) + 1
     edges = []
-    for tail, (head, relation) in enumerate(dependencies):
-        edges.append((str(head), str(tail + 1), 1))
-        edges.append((str(tail + 1), str(head), 1))
     
-    print(dijkstra(edges, '1', '5'))
-    print(dijkstra(edges, '0', '2'))
+    for tail, (head, relation) in enumerate(dependencies):
+        edges.append((head, tail + 1, 1))
+        edges.append((tail + 1, head, 1))
+    
+    filteredNames = list(filter(lambda x: x[1] in names, enumerate(words)))
+    if(len(filteredNames) >= 2):
+        for (idx1, name1), (idx2, name2) in combinations(filteredNames, 2):
+            routes = dijkstra(edges, idx1, idx2)[1]
+            routes.pop()
+            routes.pop(0)
+            relation = list(filter(lambda x: x[0] in routes, enumerate(words)))
+            print()
+            print(f'{name1} -> {name2}')
+            print(relation)
